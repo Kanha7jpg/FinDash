@@ -1,0 +1,222 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TransactionType {
+  BUY
+  SELL
+  DIVIDEND
+  SPLIT
+  DEPOSIT
+  WITHDRAWAL
+}
+
+enum AlertCondition {
+  PRICE_ABOVE
+  PRICE_BELOW
+  PERCENT_CHANGE_UP
+  PERCENT_CHANGE_DOWN
+  VOLUME_ABOVE
+}
+
+// Core user account model for authentication and ownership of user-scoped data.
+model User {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  passwordHash String
+  firstName    String?
+  lastName     String?
+  avatar       String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  watchlists    Watchlist[]
+  portfolios    Portfolio[]
+  alerts        Alert[]
+  preferences   Preference?
+  refreshTokens RefreshToken[]
+
+  @@index([email])
+}
+
+// Stores refresh tokens used for secure JWT rotation and revocation.
+model RefreshToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  createdAt DateTime  @default(now())
+  revokedAt DateTime?
+
+  @@index([userId])
+}
+
+// Per-user preferences for display and notification defaults.
+model Preference {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  theme              String   @default("light")
+  currency           String   @default("USD")
+  timezone           String   @default("UTC")
+  language           String   @default("en")
+  emailNotifications Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+// Canonical stock security model across global exchanges.
+model Stock {
+  id                String             @id @default(cuid())
+  symbol            String             @unique
+  name              String
+  country           String
+  exchange          String
+  sector            String?
+  industry          String?
+  marketCap         BigInt?
+  logoUrl           String?
+  description       String?
+  website           String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  watchlistItems    WatchlistItem[]
+  portfolioHoldings PortfolioHolding[]
+  priceHistories    PriceHistory[]
+  transactions      Transaction[]
+  alerts            Alert[]
+
+  @@index([country])
+  @@index([exchange])
+  @@index([country, exchange])
+  @@index([exchange, symbol])
+}
+
+// Time-series OHLCV history for a stock, optimized for charting and backtests.
+model PriceHistory {
+  id        String   @id @default(cuid())
+  stockId   String
+  stock     Stock    @relation(fields: [stockId], references: [id], onDelete: Cascade)
+  timestamp DateTime @db.Timestamp
+  open      Decimal  @db.Decimal(18, 2)
+  high      Decimal  @db.Decimal(18, 2)
+  low       Decimal  @db.Decimal(18, 2)
+  close     Decimal  @db.Decimal(18, 2)
+  volume    BigInt
+  createdAt DateTime @default(now())
+
+  @@unique([stockId, timestamp])
+  @@index([stockId, timestamp])
+  @@index([timestamp, stockId])
+}
+
+// Named user watchlists that group followed stocks.
+model Watchlist {
+  id          String          @id @default(cuid())
+  userId      String
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  isDefault   Boolean         @default(false)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  items       WatchlistItem[]
+
+  @@unique([userId, name])
+  @@index([userId, createdAt])
+}
+
+// Join table linking watchlists and stocks with metadata.
+model WatchlistItem {
+  id          String    @id @default(cuid())
+  watchlistId String
+  watchlist   Watchlist @relation(fields: [watchlistId], references: [id], onDelete: Cascade)
+  stockId     String
+  stock       Stock     @relation(fields: [stockId], references: [id], onDelete: Cascade)
+  notes       String?
+  addedAt     DateTime  @default(now())
+
+  @@unique([watchlistId, stockId])
+  @@index([watchlistId])
+  @@index([stockId])
+  @@index([stockId, addedAt])
+}
+
+// User portfolio container for holdings and transactions.
+model Portfolio {
+  id           String             @id @default(cuid())
+  userId       String
+  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String
+  description  String?
+  baseCurrency String             @default("USD")
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  holdings     PortfolioHolding[]
+  transactions Transaction[]
+
+  @@unique([userId, name])
+  @@index([userId, createdAt])
+}
+
+// Current position snapshot per stock in a portfolio.
+model PortfolioHolding {
+  id               String    @id @default(cuid())
+  portfolioId      String
+  portfolio        Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  stockId          String
+  stock            Stock     @relation(fields: [stockId], references: [id], onDelete: Restrict)
+  quantity         Decimal   @db.Decimal(20, 6)
+  averagePrice     Decimal   @db.Decimal(20, 4)
+  purchaseCurrency String    @default("USD")
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@unique([portfolioId, stockId])
+  @@index([portfolioId])
+  @@index([stockId])
+}
+
+// Immutable trade and cash-flow records for portfolio performance analytics.
+model Transaction {
+  id          String          @id @default(cuid())
+  portfolioId String
+  portfolio   Portfolio       @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  stockId     String
+  stock       Stock           @relation(fields: [stockId], references: [id], onDelete: Restrict)
+  type        TransactionType
+  quantity    Decimal         @db.Decimal(20, 6)
+  price       Decimal         @db.Decimal(20, 4)
+  fee         Decimal?        @db.Decimal(20, 4)
+  currency    String          @default("USD")
+  executedAt  DateTime        @db.Timestamp
+  createdAt   DateTime        @default(now())
+
+  @@index([portfolioId, executedAt])
+  @@index([stockId, executedAt])
+  @@index([executedAt])
+}
+
+// Rule-based user alerts for stock price, change, and volume events.
+model Alert {
+  id          String         @id @default(cuid())
+  userId      String
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stockId     String?
+  stock       Stock?         @relation(fields: [stockId], references: [id], onDelete: SetNull)
+  condition   AlertCondition
+  threshold   Decimal        @db.Decimal(20, 4)
+  isEnabled   Boolean        @default(true)
+  triggeredAt DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([userId, isEnabled])
+  @@index([stockId])
+  @@index([stockId, isEnabled])
+}
