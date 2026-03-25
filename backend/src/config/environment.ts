@@ -11,7 +11,13 @@ const envSchema = z.object({
   JWT_REFRESH_SECRET: z.string().min(16),
   JWT_ACCESS_EXPIRES_IN: z.string().default('15m'),
   JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
-  FRONTEND_URL: z.string().url().default('http://localhost:5173')
+  FRONTEND_URL: z.string().url().default('http://localhost:5173'),
+  IEX_CLOUD_API_KEY: z.string().min(1).optional(),
+  FINNHUB_API_KEY: z.string().min(1).optional(),
+  ALPHA_VANTAGE_API_KEY: z.string().min(1).optional(),
+  STOCK_CACHE_TTL_SECONDS: z.coerce.number().int().positive().default(60),
+  REDIS_REST_URL: z.string().url().optional(),
+  REDIS_REST_TOKEN: z.string().min(1).optional()
 });
 
 const parsed = envSchema.safeParse(process.env);

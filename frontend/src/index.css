@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --dashboard-bg: linear-gradient(160deg, #f6fbff 0%, #eef7f8 48%, #f8fbf5 100%);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--dashboard-bg);
+  color: #0f172a;
+  font-family: 'Space Grotesk', 'Segoe UI', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}

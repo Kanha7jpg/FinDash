@@ -5,5 +5,12 @@ export const API_ENDPOINTS = {
     refresh: '/auth/refresh',
     me: '/auth/me',
     logout: '/auth/logout'
+  },
+  market: {
+    markets: '/markets',
+    search: '/stocks/search',
+    quote: (symbol: string) => `/stocks/${encodeURIComponent(symbol)}`,
+    chart: (symbol: string) => `/stocks/${encodeURIComponent(symbol)}/chart`,
+    news: (symbol: string) => `/stocks/${encodeURIComponent(symbol)}/news`
   }
 } as const;
