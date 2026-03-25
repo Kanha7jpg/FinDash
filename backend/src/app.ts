@@ -1,9 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import { apiRouter } from './routes';
-import { errorHandler } from './middleware/errorHandler';
-import { env } from './config/environment';
+import { apiRouter } from './routes/index.js';
+import { errorHandler } from './middleware/errorHandler.js';
+import { env } from './config/environment.js';
 
 export const app = express();
 

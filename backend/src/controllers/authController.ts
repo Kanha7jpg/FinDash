@@ -1,76 +1,85 @@
 import type { Request, Response } from 'express';
-import { login, logout, me, refresh, register } from '../services/authService';
-import type { AuthenticatedRequest } from '../types';
+import { login, logout, me, refresh, register } from '../services/authService.js';
+import type { AuthenticatedRequest } from '../types/index.js';
+import { AppError } from '../utils/appError.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
+import { env } from '../config/environment.js';
 
 const REFRESH_COOKIE = 'refreshToken';
 
 function setRefreshCookie(res: Response, refreshToken: string) {
   res.cookie(REFRESH_COOKIE, refreshToken, {
     httpOnly: true,
-    secure: false,
+    secure: env.NODE_ENV === 'production',
     sameSite: 'lax',
-    path: '/api/auth'
+    path: '/api/auth',
+    maxAge: 7 * 24 * 60 * 60 * 1000
   });
 }
 
-export async function registerController(req: Request, res: Response) {
+export const registerController = asyncHandler(async (req: Request, res: Response) => {
   const result = await register(req.body);
   setRefreshCookie(res, result.tokens.refreshToken);
 
-  return res.status(201).json({
+  res.status(201).json({
     user: result.user,
     tokens: {
       accessToken: result.tokens.accessToken
     }
   });
-}
+});
 
-export async function loginController(req: Request, res: Response) {
+export const loginController = asyncHandler(async (req: Request, res: Response) => {
   const result = await login(req.body);
   setRefreshCookie(res, result.tokens.refreshToken);
 
-  return res.status(200).json({
+  res.status(200).json({
     user: result.user,
     tokens: {
       accessToken: result.tokens.accessToken
     }
   });
-}
+});
 
-export async function refreshController(req: Request, res: Response) {
+export const refreshController = asyncHandler(async (req: Request, res: Response) => {
   const refreshToken = req.cookies[REFRESH_COOKIE];
 
   if (!refreshToken) {
-    return res.status(401).json({ message: 'Missing refresh token' });
+    throw new AppError(401, 'Missing refresh token');
   }
 
   const result = await refresh(refreshToken);
   setRefreshCookie(res, result.tokens.refreshToken);
 
-  return res.status(200).json({
+  res.status(200).json({
     user: result.user,
     tokens: {
       accessToken: result.tokens.accessToken
     }
   });
-}
+});
 
-export async function logoutController(req: Request, res: Response) {
+export const logoutController = asyncHandler(async (req: Request, res: Response) => {
   const refreshToken = req.cookies[REFRESH_COOKIE];
 
   if (refreshToken) {
     await logout(refreshToken);
   }
 
-  res.clearCookie(REFRESH_COOKIE, { path: '/api/auth' });
-  return res.status(200).json({ message: 'Logged out' });
-}
+  res.clearCookie(REFRESH_COOKIE, {
+    httpOnly: true,
+    secure: env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/api/auth'
+  });
+  res.status(200).json({ message: 'Logged out' });
+});
 
-export async function meController(req: AuthenticatedRequest, res: Response) {
+export const meController = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   if (!req.user?.id) {
-    return res.status(401).json({ message: 'Unauthorized' });
+    throw new AppError(401, 'Unauthorized');
   }
 
   const user = await me(req.user.id);
-  return res.status(200).json({ user });
-}
+  res.status(200).json({ user });
+});

@@ -1,8 +1,9 @@
 import jwt from 'jsonwebtoken';
 import crypto from 'node:crypto';
-import { env } from '../config/environment';
+import { env } from '../config/environment.js';
+import { AppError } from './appError.js';
 
-type JwtPayload = {
+export type JwtPayload = {
   sub: string;
   email: string;
 };
@@ -22,11 +23,21 @@ export function signRefreshToken(payload: JwtPayload): string {
 }
 
 export function verifyAccessToken(token: string): JwtPayload {
-  return jwt.verify(token, env.JWT_ACCESS_SECRET) as JwtPayload;
+  try {
+    const payload = jwt.verify(token, env.JWT_ACCESS_SECRET) as JwtPayload;
+    return payload;
+  } catch {
+    throw new AppError(401, 'Invalid or expired access token');
+  }
 }
 
 export function verifyRefreshToken(token: string): JwtPayload {
-  return jwt.verify(token, env.JWT_REFRESH_SECRET) as JwtPayload;
+  try {
+    const payload = jwt.verify(token, env.JWT_REFRESH_SECRET) as JwtPayload;
+    return payload;
+  } catch {
+    throw new AppError(401, 'Invalid or expired refresh token');
+  }
 }
 
 export function hashToken(rawToken: string): string {

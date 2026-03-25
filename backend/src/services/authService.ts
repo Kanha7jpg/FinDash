@@ -1,20 +1,10 @@
 import { PrismaClient } from '@prisma/client';
-import { comparePassword, hashPassword } from '../utils/password';
-import { hashToken, signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils/jwt';
+import { comparePassword, hashPassword } from '../utils/password.js';
+import { hashToken, signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils/jwt.js';
+import { AppError } from '../utils/appError.js';
+import type { LoginInput, RegisterInput } from '../types/index.js';
 
 const prisma = new PrismaClient();
-
-type RegisterInput = {
-  email: string;
-  password: string;
-  firstName?: string;
-  lastName?: string;
-};
-
-type LoginInput = {
-  email: string;
-  password: string;
-};
 
 type AuthResult = {
   user: {
@@ -47,7 +37,7 @@ export async function register(input: RegisterInput): Promise<AuthResult> {
   const existing = await prisma.user.findUnique({ where: { email: input.email } });
 
   if (existing) {
-    throw new Error('User already exists');
+    throw new AppError(409, 'User already exists');
   }
 
   const user = await prisma.user.create({
@@ -76,13 +66,13 @@ export async function login(input: LoginInput): Promise<AuthResult> {
   const user = await prisma.user.findUnique({ where: { email: input.email } });
 
   if (!user) {
-    throw new Error('Invalid credentials');
+    throw new AppError(401, 'Invalid credentials');
   }
 
   const validPassword = await comparePassword(input.password, user.passwordHash);
 
   if (!validPassword) {
-    throw new Error('Invalid credentials');
+    throw new AppError(401, 'Invalid credentials');
   }
 
   const tokens = await issueTokens(user);
@@ -111,7 +101,17 @@ export async function refresh(rawRefreshToken: string) {
   });
 
   if (!existing) {
-    throw new Error('Invalid refresh token');
+    // Token reuse or unknown token: force logout of all active sessions for the user.
+    await prisma.refreshToken.updateMany({
+      where: {
+        userId: payload.sub,
+        revokedAt: null
+      },
+      data: {
+        revokedAt: new Date()
+      }
+    });
+    throw new AppError(401, 'Invalid refresh token');
   }
 
   await prisma.refreshToken.update({
@@ -148,7 +148,12 @@ export async function logout(rawRefreshToken: string): Promise<void> {
 }
 
 export async function me(userId: string) {
-  const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+
+  if (!user) {
+    throw new AppError(404, 'User not found');
+  }
+
   return {
     id: user.id,
     email: user.email,

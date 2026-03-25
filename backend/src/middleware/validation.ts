@@ -2,17 +2,18 @@ import type { NextFunction, Request, Response } from 'express';
 import type { ZodType } from 'zod';
 
 export function validateBody<T>(schema: ZodType<T>) {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
     const parsed = schema.safeParse(req.body);
 
     if (!parsed.success) {
-      return res.status(400).json({
+      res.status(422).json({
         message: 'Validation failed',
         errors: parsed.error.flatten().fieldErrors
       });
+      return;
     }
 
-    req.body = parsed.data;
-    return next();
+    req.body = parsed.data as unknown;
+    next();
   };
 }

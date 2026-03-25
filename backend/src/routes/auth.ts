@@ -6,19 +6,19 @@ import {
   meController,
   refreshController,
   registerController
-} from '../controllers/authController';
-import { authMiddleware } from '../middleware/auth';
-import { validateBody } from '../middleware/validation';
+} from '../controllers/authController.js';
+import { authMiddleware } from '../middleware/auth.js';
+import { validateBody } from '../middleware/validation.js';
 
 const registerSchema = z.object({
-  email: z.string().email(),
+  email: z.string().email().transform((value) => value.toLowerCase().trim()),
   password: z.string().min(8),
-  firstName: z.string().optional(),
-  lastName: z.string().optional()
+  firstName: z.string().trim().min(1).max(100).optional(),
+  lastName: z.string().trim().min(1).max(100).optional()
 });
 
 const loginSchema = z.object({
-  email: z.string().email(),
+  email: z.string().email().transform((value) => value.toLowerCase().trim()),
   password: z.string().min(8)
 });
 
