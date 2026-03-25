@@ -6,7 +6,12 @@ type AuthState = {
   user: User | null;
   accessToken: string | null;
   isAuthenticated: boolean;
+  isInitializing: boolean;
+  hasHydrated: boolean;
   setAuth: (user: User, accessToken: string) => void;
+  setAccessToken: (accessToken: string) => void;
+  setInitializing: (value: boolean) => void;
+  setHasHydrated: (value: boolean) => void;
   logout: () => void;
 };
 
@@ -16,21 +21,39 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       accessToken: null,
       isAuthenticated: false,
+      isInitializing: true,
+      hasHydrated: false,
       setAuth: (user, accessToken) =>
         set({
           user,
           accessToken,
           isAuthenticated: true
         }),
+      setAccessToken: (accessToken) =>
+        set((state) => ({
+          accessToken,
+          isAuthenticated: Boolean(accessToken && state.user)
+        })),
+      setInitializing: (value) => set({ isInitializing: value }),
+      setHasHydrated: (value) => set({ hasHydrated: value }),
       logout: () =>
         set({
           user: null,
           accessToken: null,
-          isAuthenticated: false
+          isAuthenticated: false,
+          isInitializing: false
         })
     }),
     {
-      name: 'financial-dashboard-auth'
+      name: 'financial-dashboard-auth',
+      partialize: (state) => ({
+        user: state.user,
+        accessToken: state.accessToken,
+        isAuthenticated: state.isAuthenticated
+      }),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      }
     }
   )
 );

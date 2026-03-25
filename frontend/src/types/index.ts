@@ -28,4 +28,10 @@ export type RegisterPayload = {
 
 export type ApiError = {
   message: string;
+  details?: Record<string, string[] | undefined>;
+};
+
+export type RetriableRequestConfig = {
+  _retry?: boolean;
+  headers?: Record<string, string>;
 };
