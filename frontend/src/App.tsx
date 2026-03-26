@@ -7,6 +7,8 @@ import { DashboardPage } from '@/pages/DashboardPage';
 import { LoginPage } from '@/pages/LoginPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { RegisterPage } from '@/pages/RegisterPage';
+import { PortfolioPage } from '@/pages/PortfolioPage';
+import { WatchlistsPage } from '@/pages/WatchlistsPage';
 
 function ProtectedRoute({ children }: { children: JSX.Element }) {
   const { isAuthenticated, isInitializing } = useAuth();
@@ -38,6 +40,8 @@ export default function App() {
         >
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="portfolio" element={<PortfolioPage />} />
+          <Route path="watchlists" element={<WatchlistsPage />} />
         </Route>
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

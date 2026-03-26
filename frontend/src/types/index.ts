@@ -99,3 +99,110 @@ export type CountrySectionData = {
   country: string;
   stocks: StockCardData[];
 };
+
+export type WatchlistStockItem = {
+  id: string;
+  symbol: string;
+  name: string;
+  exchange: string;
+  country: string;
+  notes: string | null;
+  addedAt: string;
+};
+
+export type Watchlist = {
+  id: string;
+  name: string;
+  description: string | null;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+  items: WatchlistStockItem[];
+};
+
+export type CreateWatchlistPayload = {
+  name: string;
+  description?: string;
+};
+
+export type AddWatchlistStockPayload = {
+  symbol: string;
+  name?: string;
+  exchange?: string;
+  country?: string;
+  notes?: string;
+};
+
+export type UpdateWatchlistStockPayload = {
+  notes?: string;
+};
+
+export type PortfolioSummary = {
+  id: string;
+  name: string;
+  description: string | null;
+  baseCurrency: string;
+  createdAt: string;
+  updatedAt: string;
+  holdingsCount: number;
+  transactionsCount: number;
+};
+
+export type PortfolioHolding = {
+  symbol: string;
+  name: string;
+  exchange: string;
+  country: string;
+  quantity: number;
+  averagePrice: number;
+  costBasis: number;
+  currentPrice: number | null;
+  marketValue: number | null;
+  unrealizedPnl: number | null;
+  unrealizedPnlPercent: number | null;
+};
+
+export type PortfolioTransaction = {
+  id: string;
+  symbol: string;
+  stockName: string;
+  type: 'BUY' | 'SELL' | string;
+  quantity: number;
+  price: number;
+  fee: number;
+  currency: string;
+  executedAt: string;
+  createdAt: string;
+};
+
+export type PortfolioDetail = {
+  id: string;
+  name: string;
+  description: string | null;
+  baseCurrency: string;
+  createdAt: string;
+  updatedAt: string;
+  totals: {
+    totalCostBasis: number;
+    totalMarketValue: number | null;
+    totalUnrealizedPnl: number | null;
+  };
+  holdings: PortfolioHolding[];
+  transactions: PortfolioTransaction[];
+};
+
+export type CreatePortfolioPayload = {
+  name: string;
+  description?: string;
+  baseCurrency?: string;
+};
+
+export type CreatePortfolioTransactionPayload = {
+  symbol: string;
+  type: 'BUY' | 'SELL';
+  quantity: number;
+  price: number;
+  fee?: number;
+  currency?: string;
+  executedAt: string;
+};

@@ -7,6 +7,12 @@ export function Sidebar() {
         <Link to="/dashboard" className="block rounded px-3 py-2 hover:bg-slate-100">
           Dashboard
         </Link>
+        <Link to="/portfolio" className="block rounded px-3 py-2 hover:bg-slate-100">
+          Portfolio
+        </Link>
+        <Link to="/watchlists" className="block rounded px-3 py-2 hover:bg-slate-100">
+          Watchlists
+        </Link>
       </nav>
     </aside>
   );
