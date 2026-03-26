@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { aiRouter } from './ai.js';
 import { authRouter } from './auth.js';
 import { marketsRouter } from './markets.js';
 import { portfoliosRouter } from './portfolios.js';
@@ -11,6 +12,7 @@ apiRouter.get('/health', (_req, res) => {
 });
 
 apiRouter.use('/auth', authRouter);
+apiRouter.use('/', aiRouter);
 apiRouter.use('/', marketsRouter);
 apiRouter.use('/', portfoliosRouter);
 apiRouter.use('/', watchlistsRouter);

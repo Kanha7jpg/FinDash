@@ -15,6 +15,12 @@ const envSchema = z.object({
   IEX_CLOUD_API_KEY: z.string().min(1).optional(),
   FINNHUB_API_KEY: z.string().min(1).optional(),
   ALPHA_VANTAGE_API_KEY: z.string().min(1).optional(),
+  ANTHROPIC_API_KEY: z.string().min(1).optional(),
+  ANTHROPIC_MODEL: z.string().min(1).default('claude-3-7-sonnet-latest'),
+  AI_REQUEST_TIMEOUT_MS: z.coerce.number().int().positive().default(20000),
+  AI_MAX_TOKENS: z.coerce.number().int().positive().max(4096).default(1400),
+  AI_TEMPERATURE: z.coerce.number().min(0).max(1).default(0.2),
+  AI_INSIGHT_CACHE_TTL_SECONDS: z.coerce.number().int().min(60).default(900),
   STOCK_CACHE_TTL_SECONDS: z.coerce.number().int().positive().default(60),
   REDIS_REST_URL: z.string().url().optional(),
   REDIS_REST_TOKEN: z.string().min(1).optional()

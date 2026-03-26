@@ -24,6 +24,12 @@ enum AlertCondition {
   VOLUME_ABOVE
 }
 
+enum AiInsightKind {
+  STOCK_ANALYSIS
+  PORTFOLIO_ANALYSIS
+  MARKET_SENTIMENT
+}
+
 // Core user account model for authentication and ownership of user-scoped data.
 model User {
   id           String        @id @default(cuid())
@@ -40,8 +46,25 @@ model User {
   alerts        Alert[]
   preferences   Preference?
   refreshTokens RefreshToken[]
+  aiInsights    AiInsight[]
 
   @@index([email])
+}
+
+// Persisted AI analysis outputs with user scope and TTL for cached freshness.
+model AiInsight {
+  id         String        @id @default(cuid())
+  userId     String
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind       AiInsightKind
+  subjectKey String
+  input      Json
+  output     Json
+  createdAt  DateTime      @default(now())
+  expiresAt  DateTime
+
+  @@index([userId, kind, subjectKey, expiresAt])
+  @@index([expiresAt])
 }
 
 // Stores refresh tokens used for secure JWT rotation and revocation.
