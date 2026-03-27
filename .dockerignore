@@ -1,0 +1,15 @@
+node_modules
+npm-debug.log
+.git
+.gitignore
+.vscode
+coverage
+dist
+frontend/dist
+backend/dist
+cypress/videos
+cypress/screenshots
+**/*.tsbuildinfo
+.env
+.env.*
+!.env.production.example

@@ -24,8 +24,6 @@ const portfolioParamsSchema = z.object({
 
 export const aiRouter = Router();
 
-aiRouter.use(authMiddleware);
-
-aiRouter.get('/ai/stock-analysis/:symbol', validateParams(stockSymbolParamsSchema), getStockAnalysisController);
-aiRouter.get('/ai/portfolio-analysis/:id', validateParams(portfolioParamsSchema), getPortfolioAnalysisController);
-aiRouter.get('/ai/market-sentiment', getMarketSentimentController);
+aiRouter.get('/ai/stock-analysis/:symbol', authMiddleware, validateParams(stockSymbolParamsSchema), getStockAnalysisController);
+aiRouter.get('/ai/portfolio-analysis/:id', authMiddleware, validateParams(portfolioParamsSchema), getPortfolioAnalysisController);
+aiRouter.get('/ai/market-sentiment', authMiddleware, getMarketSentimentController);

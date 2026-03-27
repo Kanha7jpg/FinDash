@@ -12,6 +12,12 @@ const envSchema = z.object({
   JWT_ACCESS_EXPIRES_IN: z.string().default('15m'),
   JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
   FRONTEND_URL: z.string().url().default('http://localhost:5173'),
+  LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
+  ENABLE_REQUEST_LOGGING: z
+    .union([z.literal('true'), z.literal('false')])
+    .transform((value) => value === 'true')
+    .default('true'),
+  MONITORING_API_KEY: z.string().min(16).optional(),
   IEX_CLOUD_API_KEY: z.string().min(1).optional(),
   FINNHUB_API_KEY: z.string().min(1).optional(),
   ALPHA_VANTAGE_API_KEY: z.string().min(1).optional(),

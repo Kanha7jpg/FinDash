@@ -1,0 +1,9 @@
+process.env.NODE_ENV = 'test';
+process.env.PORT = process.env.PORT || '4000';
+process.env.DATABASE_URL = process.env.DATABASE_URL || 'https://example.test/db';
+process.env.JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || 'test-access-secret-1234';
+process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'test-refresh-secret-1234';
+process.env.JWT_ACCESS_EXPIRES_IN = process.env.JWT_ACCESS_EXPIRES_IN || '15m';
+process.env.JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
+process.env.FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+process.env.AI_INSIGHT_CACHE_TTL_SECONDS = process.env.AI_INSIGHT_CACHE_TTL_SECONDS || '900';
