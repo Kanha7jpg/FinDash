@@ -23,3 +23,7 @@ A clean-architecture-ready monorepo for a multi-country stock dashboard.
 ## Ports
 - Frontend: 5173
 - Backend: 4000
+
+## Documentation
+- Run Guide: `docs/RUN_APP.md`
+- Detailed Technology Explanation: `docs/TECH_STACK_DETAILED.md`
